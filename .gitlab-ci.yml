@@ -11,13 +11,7 @@ stages:
   - dependencies
   - lint
   - build
-  #- test
   - scan
-  #- pages
-  # - integration
-  # - staging
-  # - deploy
-  #- accessibility
   - publish
 
 js-test:
