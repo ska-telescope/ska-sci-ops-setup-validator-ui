@@ -1,0 +1,22 @@
+{
+    "language": "English",
+    "sv": {
+        "title": "Setup validator"
+    },
+    "buttons": {
+        "addNewSubarray": "Add New Subarray",
+        "validateSetup": "Validate Setup"
+    },
+    "toolTip": {
+        "button": {
+            "docs": "Click here for Sensitivity Calculator documentation",
+            "docsURL": "https://docs.google.com/document/d/1tB-5ZwpYdlavyTyELrZWpFnEJgPv2Qc4azONxlU5kXM/edit?tab=t.0#heading=h.fn3j4uie4zpn",
+            "mode": "Color Mode Toggle",
+            "skao": "SKAO WebSite",
+            "telescopeToggle": "Switch between available telescopes"
+        }
+    },
+    "version": {
+    "label": "version"
+    }
+}

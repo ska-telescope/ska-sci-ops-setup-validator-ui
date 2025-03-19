@@ -1,0 +1,66 @@
+/* Common grid structure for all forms */
+.form-grid,
+.tab-content .form-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Equal width columns */
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Handle the structure of form groups within main form */
+.form-group {
+  display: contents;
+}
+
+/* Style labels consistently */
+.form-group label,
+.tab-content .form-group label {
+  grid-column: 1 / 2;
+  align-self: center;
+  padding-right: 20px;
+  text-align: left;
+}
+
+/* Style inputs and selects consistently */
+.form-group select,
+.form-group input,
+.tab-content .form-group select,
+.tab-content .form-group input {
+  grid-column: 2 / 3;
+  width: 200px;
+  max-width: 100%;
+  justify-self: start; /* Align inputs to the left within their cell */
+}
+
+/* Utility classes */
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.left-aligned {
+  text-align: left;
+}
+
+/* Tab content styles */
+.tab-content {
+  padding: 10px;
+}
+
+/* For disabled form groups */
+.tab-content .form-group.disabled label {
+  color: #aaa;
+}
+
+/* For react-select components to maintain consistent width and alignment */
+.css-b62m3t-container {
+  width: 200px !important;
+  max-width: 100%;
+  justify-self: start;
+}
+
+/* For checkboxes, maintain consistent alignment but allow proper sizing */
+.form-group input[type="checkbox"],
+.tab-content .form-group input[type="checkbox"] {
+  width: auto;
+  margin-left: 0;
+}

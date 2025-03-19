@@ -1,0 +1,184 @@
+.App {
+    text-align: center;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+  
+  .App-header {
+    background-color: #282c34;
+    min-height: 10vh;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    font-size: calc(10px + 2vmin);
+    color: white;
+    padding: 20px;
+    width: 100%; /* Ensure the same width as App-content */
+    box-sizing: border-box; /* Include padding in width calculation */
+    position: relative;
+  }
+  
+  .App-header h1 {
+    margin: 0;
+  }
+  
+  .App-content {
+    display: flex;
+    flex-direction: column; /* Ensure elements are stacked vertically */
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    width: calc(100% - 80px); /* Add margin to the left and right */
+    margin: 20px 40px; /* Add margin to the left and right */
+    font-family: Arial, sans-serif; /* Ensure the same font style */
+    font-size: 16px; /* Ensure the same font size */
+    box-sizing: border-box; /* Include padding in width calculation */
+  }
+  
+  .accordion {
+    width: 60%; /* Reduce the width of the accordion */
+    box-sizing: border-box; /* Include padding in width calculation */
+  }
+  
+  .accordion__item {
+    width: 100%; 
+    box-sizing: border-box; /* Include padding in width calculation */
+  }
+  
+  .accordion__button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 15px; /* Reduce padding to slightly reduce height */
+    background-color: #c0c0c0; /* Slightly darker background color */
+    box-sizing: border-box; /* Include padding in width calculation */
+  }
+  
+  .accordion__button.selected {
+    background-color: #a9a9a9; /* Slightly darker background color for selected state */
+  }
+  
+  .accordion__panel {
+    background-color: #f0f0f0; /* Add background color */
+    padding: 0px; /* Reduce vertical padding */
+    border-radius: 5px;
+    width: 100%; /* Ensure the same width as accordion__button */
+    box-sizing: border-box; /* Include padding in width calculation */
+  }
+  
+  .accordion__itemHeading {
+    background-color: #b0b0b0; /* Slightly darker background color */
+  }
+  
+  .accordion__panel .subarray-form {
+    width: 80%; /* Set width to 80% of AccordionItemPanel */
+    margin: 0 auto; /* Center align */
+  }
+  
+  .error-container {
+    max-height: 100px;
+    overflow-y: auto;
+    margin: 5px 0; /* Reduced from 10px to 5px */
+  }
+  
+  .error {
+    color: #ff3333;
+    margin: 0;
+    padding: 3px; /* Reduced from 5px to 3px */
+    text-align: center;
+  }
+  
+  .remove-button {
+    margin-left: 5px; /* Reduce space between Copy and Remove buttons */
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
+  .remove-button:disabled {
+    background-color: grey;
+    cursor: not-allowed;
+  }
+  
+  .button-group {
+    display: flex;
+    flex-direction: row; /* Display buttons on the same line */
+    gap: 10px;
+    margin-bottom: 10px; /* Reduced from 20px to 10px */
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 10px;
+    z-index: 1000;
+    box-sizing: border-box; /* Include padding in width calculation */
+  }
+  
+  .accordion-button-group {
+    display: flex;
+    flex-direction: row; /* Display buttons on the same line */
+    gap: 5px;
+  }
+  
+  .accordion__item form {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+    align-items: center;
+    width: 100%; /* Ensure the same width as accordion__item */
+    box-sizing: border-box; /* Include padding in width calculation */
+  }
+  
+  .accordion__item label {
+    display: contents; /* Ensure the label and input are aligned in the grid */
+    text-align: right; /* Right align the label */
+  }
+  
+  .accordion__item select {
+    width: 100%;
+  }
+  
+  .subarray-form-container {
+    width: 80%;
+    margin: 0 auto; /* Center align */
+  }
+  
+  .telescope-context-container {
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+  }
+  
+  .telescope-context-dropdown {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .telescope-context-dropdown:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  }
+  
+  /* Remove spinner/arrows from number inputs */
+  input[type="number"] {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }

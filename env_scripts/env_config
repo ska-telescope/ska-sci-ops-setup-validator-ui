@@ -1,0 +1,13 @@
+# This file contains the configuration of the expected environment variables
+# The format is as follows:
+# <env name>:<env type>[:<optional default>]
+
+# The current types that are expected are as follows:
+#
+# - string
+# - number
+# - boolean
+
+REACT_APP_MSENTRA_CLIENT_ID:string
+REACT_APP_MSENTRA_REDIRECT_URI:string
+REACT_APP_MSENTRA_TENANT_ID:string
