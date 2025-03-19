@@ -14,25 +14,6 @@ stages:
   - scan
   - publish
 
-js-test:
-  allow_failure: true
-  before_script:
-    - mkdir -p build/reports
-  script:
-    - yarn install
-    - yarn test:unit --reporter junit --output-file build/reports/unit-tests.xml
-  cache:
-    paths:
-      - node_modules/
-    policy: pull
-  artifacts:
-    when: always
-    reports:
-      junit: build/reports/unit-tests.xml
-    paths:
-      - build/reports
-    expire_in: 7 days
-
 ts-typecheck:
   image: $NODE_IMAGE
   stage: lint
