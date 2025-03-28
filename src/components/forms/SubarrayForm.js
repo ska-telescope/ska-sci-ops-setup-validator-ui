@@ -86,6 +86,10 @@ const SubarrayForm = ({
           'Observing mode'}
       </h3>
 
+      <div className="context-info" style={{ margin: '10px 0', fontSize: '0.9em', color: '#666', textAlign: 'left' }}>
+        Use the tabs below to configure the observing mode for the selected subarray{!isSkaMid ? ' and station beam' : ''}.
+      </div>
+
       {/* Apply to all station beams option - only shown for SKA-Low */}
       {!isSkaMid && (
         <div className="form-grid">

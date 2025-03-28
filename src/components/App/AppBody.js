@@ -275,6 +275,13 @@ const AppBody = ({
     <div className="App-content">
       {(telescope === 'SKA-Mid' || telescope === 'SKA-Low') && (
         <>
+          <div className="context-info" style={{ margin: '10px 0', fontSize: '0.9em', color: '#666', textAlign: 'left' }}>
+            Welcome to the SKA setup validation tool. This tool allows you to determine whether your observational setup can be executed on the SKA Low and Mid telescopes during the various construction and operational phases.
+          </div>
+          <div className="context-info" style={{ margin: '10px 0', fontSize: '0.9em', color: '#666', textAlign: 'left' }}>
+            Use the "Add New Subarray" button to create multiple subarrays. Configure each subarrays using the subarray accordions that are shown below. Once you are done, click the "Validate setup" button to check if your setup is valid.
+          </div>
+
           <div className="button-group">
             <AwesomeButton 
               type="primary" 
