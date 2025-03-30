@@ -12,6 +12,10 @@ export const skaMidDefaults = {
   // Continuum channel widths as floats instead of strings
   export const skaMidContChannelWidth = 13.4;
   export const skaLowContChannelWidth = 5.4;
+
+  // Default time and frequency average factors for Continuum mode
+  export const defaultTimeAvgFactor = 1;
+  export const defaultFreqAvgFactor = 1;
   
   // Context-specific PSS beam values
   export const getPssBeamsByContext = (context) => {
