@@ -5,7 +5,6 @@ import { skaMidZoomOptions, skaLowZoomOptions } from '../../utils/defaultValues'
 const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChange, telescope, telescopeContext }) => {
   const [specifiedBandwidth, setSpecifiedBandwidth] = useState('');
   const stationBeamId = telescope === 'SKA-Low' ? subarray.selectedStationBeam : 1; // Get the selected station beam ID
-  const isDisabled = telescopeContext === 'SV-AA2'; // Only disable for SV-AA2, allow for other contexts including Cycle 1
   const isZoomEnabled = subarray.modes[stationBeamId]?.zoom || false;
 
   const zoomOptions = telescope === 'SKA-Mid' ? skaMidZoomOptions : skaLowZoomOptions;
@@ -29,17 +28,11 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
         <input
           type="checkbox"
           checked={isZoomEnabled}
-          onChange={() => !isDisabled && handleObservingModeChange(subarray.id, 'zoom')}
-          disabled={isDisabled}
+          onChange={() => handleObservingModeChange(subarray.id, 'zoom')}
           style={{ marginRight: '8px' }}
         />
-        {isDisabled && (
-          <div className="zoom-disabled-message" style={{ color: 'red', marginTop: '10px' }}>
-            Zoom mode is not available in this context
-          </div>
-        )}
       </div>
-      {!isDisabled && subarray.modes[stationBeamId]?.zoom && (
+      {subarray.modes[stationBeamId]?.zoom && (
         <>
           <div className="form-group">
             <label>No. of zoom channels{telescope === 'SKA-Low' ? ` for station beam ${stationBeamId}` : ''}:</label>
