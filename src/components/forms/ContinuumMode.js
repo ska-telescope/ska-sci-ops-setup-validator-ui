@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { defaultTimeAvgFactor, defaultFreqAvgFactor } from '../../utils/defaultValues';
+import { AwesomeButton } from 'react-awesome-button';
+import 'react-awesome-button/dist/styles.css';
 
 const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSettingsChange, telescope }) => {
   const stationBeamId = telescope === 'SKA-Low' ? subarray.selectedStationBeam : 1; // Get the selected station beam ID
@@ -525,23 +527,14 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <button 
-                    type="button" 
-                    className="btn btn-primary"
-                    onClick={handleAddOdp}
-                    disabled={!selectedOdpType}
-                    style={{ 
-                      padding: '8px 16px', 
-                      backgroundColor: '#1976d2', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      width: '100%'
-                    }}
+                  <AwesomeButton 
+                    type="primary"
+                    onPress={handleAddOdp}
+                    disabled={!selectedOdpType || (selectedOdpType?.value === 'images' && !makeMfsStokesI && !makeChannelImages)}
+                    className="small-button"
                   >
                     Add ODP
-                  </button>
+                  </AwesomeButton>
                 </div>
               </div>
             </div>

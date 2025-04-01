@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { skaMidZoomOptions, skaLowZoomOptions } from '../../utils/defaultValues';
 import { defaultTimeAvgFactor, defaultFreqAvgFactor } from '../../utils/defaultValues';
+import { AwesomeButton } from 'react-awesome-button';
+import 'react-awesome-button/dist/styles.css';
 
 const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChange, telescope, telescopeContext }) => {
   const [specifiedBandwidth, setSpecifiedBandwidth] = useState('');
@@ -534,23 +536,14 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <button 
-                    type="button" 
-                    className="btn btn-primary"
-                    onClick={handleAddOdp}
-                    disabled={!selectedOdpType}
-                    style={{ 
-                      padding: '8px 16px', 
-                      backgroundColor: '#1976d2', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      width: '100%'
-                    }}
+                  <AwesomeButton 
+                    type="primary"
+                    onPress={handleAddOdp}
+                    disabled={!selectedOdpType || (selectedOdpType?.value === 'images' && !makeMfsStokesI && !makeChannelImages)}
+                    className="small-button"
                   >
                     Add ODP
-                  </button>
+                  </AwesomeButton>
                 </div>
               </div>
             </div>
