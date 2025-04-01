@@ -15,13 +15,14 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
   // State for ODP section
   const [selectedOdpType, setSelectedOdpType] = useState(null);
   const [odpList, setOdpList] = useState([]);
-  
+  const [odpLabel, setOdpLabel] = useState(''); // New state for ODP label
+
   // Add states for additional ODP settings
   const [timeAveraging, setTimeAveraging] = useState(defaultTimeAvgFactor);
   const [frequencyAveraging, setFrequencyAveraging] = useState(defaultFreqAvgFactor);
   const [makeMfsStokesI, setMakeMfsStokesI] = useState(false);
   const [makeChannelImages, setMakeChannelImages] = useState(false);
-  
+
   // Add states for MFS Stokes I additional settings
   const [robustParameter, setRobustParameter] = useState(0.0);
   const [gaussianTaper, setGaussianTaper] = useState(0.0);
@@ -79,7 +80,39 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
     setChannelRobustParameter(0.0);
     setChannelGaussianTaper(0.0);
     setChannelAdditionalImages([]);
+
+    // Generate default label when ODP type changes
+    if (selectedOdpType) {
+      generateDefaultLabel(selectedOdpType.value);
+    } else {
+      setOdpLabel('');
+    }
   }, [selectedOdpType]);
+
+  // Generate a default label for the ODP based on type and existing ODPs
+  const generateDefaultLabel = (odpType) => {
+    if (!odpType) return;
+    
+    const typeLabel = odpType === 'calibrated_visibilities' ? 'Calibrated visibilities' : 'Image';
+    
+    // Find the highest number used in existing labels of this type
+    let maxNumber = 0;
+    odpList.forEach(odp => {
+      if (odp.type === odpType && odp.label) {
+        // Extract the number from the label if it follows the pattern "Type X"
+        const match = odp.label.match(new RegExp(`${typeLabel} (\\d+)`));
+        if (match && match[1]) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNumber) {
+            maxNumber = num;
+          }
+        }
+      }
+    });
+    
+    // Set the default label with the next available number
+    setOdpLabel(`${typeLabel} ${maxNumber + 1}`);
+  };
 
   // Load ODPs from subarray state when component mounts or subarray changes
   useEffect(() => {
@@ -91,19 +124,19 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
       return {
         id: odp.id || Date.now() + Math.random(), // Use existing id or generate new one
         type: odp.type,
-        label: matchingOption ? matchingOption.label : odp.type, // Get label from options or fallback to type
+        label: odp.label || (matchingOption ? matchingOption.label : odp.type), // Use existing label if available
         settings: odp.settings || {} // Include any saved settings
       };
     });
     setOdpList(formattedOdps);
   }, [subarray.id, stationBeamId, subarray.zoomSettings]);
-  
+
   // Handle adding an ODP to the list
   const handleAddOdp = () => {
     if (selectedOdpType) {
       // Create settings object based on ODP type
       let settings = {};
-      
+
       if (selectedOdpType.value === 'calibrated_visibilities') {
         settings = {
           timeAveraging: parseInt(timeAveraging, 10) || defaultTimeAvgFactor,
@@ -114,7 +147,7 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
           makeMfsStokesI: makeMfsStokesI,
           makeChannelImages: makeChannelImages
         };
-        
+
         // Add MFS Stokes I specific settings if it's enabled
         if (makeMfsStokesI) {
           settings.mfsStokesI = {
@@ -123,7 +156,7 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
             additionalImages: additionalImages.map(img => img.value)
           };
         }
-        
+
         // Add Channel Images specific settings if it's enabled
         if (makeChannelImages) {
           settings.channelImages = {
@@ -140,24 +173,26 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
       const newOdpForUI = {
         id: Date.now(), // Use timestamp as unique ID for UI operations
         type: selectedOdpType.value,
-        label: selectedOdpType.label,
+        label: odpLabel || selectedOdpType.label, // Use custom label or fall back to type label
         settings: settings
       };
-      
+
       const updatedOdpListForUI = [...odpList, newOdpForUI];
       setOdpList(updatedOdpListForUI);
-      
+
       // Create simplified version of the entire list for the API
-      const updatedOdpListForAPI = updatedOdpListForUI.map(odp => ({ 
+      const updatedOdpListForAPI = updatedOdpListForUI.map(odp => ({
         type: odp.type,
+        label: odp.label, // Include label in API data
         settings: odp.settings
       }));
-      
+
       // Store the simplified list in the subarray state for API use
       handleZoomSettingsChange(subarray.id, 'odpList', updatedOdpListForAPI);
-      
+
       // Reset the dropdown and additional fields after adding
       setSelectedOdpType(null);
+      setOdpLabel(''); // Reset label field
       setTimeAveraging(defaultTimeAvgFactor);
       setFrequencyAveraging(defaultFreqAvgFactor);
       setMakeMfsStokesI(false);
@@ -177,13 +212,14 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
   const handleRemoveOdp = (odpId) => {
     const updatedOdpListForUI = odpList.filter(odp => odp.id !== odpId);
     setOdpList(updatedOdpListForUI);
-    
+
     // Create simplified version for the API
-    const updatedOdpListForAPI = updatedOdpListForUI.map(odp => ({ 
+    const updatedOdpListForAPI = updatedOdpListForUI.map(odp => ({
       type: odp.type,
+      label: odp.label, // Include label in API data
       settings: odp.settings
     }));
-    
+
     // Update the subarray state with the simplified ODP list
     handleZoomSettingsChange(subarray.id, 'odpList', updatedOdpListForAPI);
   };
@@ -198,8 +234,8 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
           <>
             <div className="form-group" style={{ gridColumn: '1 / 6' }}>
               <label>Time averaging factor:</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="no-spinner"
                 value={timeAveraging}
                 onChange={(e) => setTimeAveraging(parseInt(e.target.value, 10) || defaultTimeAvgFactor)}
@@ -207,11 +243,11 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 step="1"
               />
             </div>
-            
+
             <div className="form-group" style={{ gridColumn: '1 / 6' }}>
               <label>Frequency averaging factor:</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="no-spinner"
                 value={frequencyAveraging}
                 onChange={(e) => setFrequencyAveraging(parseInt(e.target.value, 10) || defaultFreqAvgFactor)}
@@ -226,7 +262,7 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
           <>
             <div className="form-group" style={{ gridColumn: '1 / 6', display: 'flex', alignItems: 'center' }}>
               <label style={{ marginRight: '10px' }}>MFS Stokes I image:</label>
-              <input 
+              <input
                 type="checkbox"
                 checked={makeMfsStokesI}
                 onChange={(e) => setMakeMfsStokesI(e.target.checked)}
@@ -234,13 +270,13 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
             </div>
 
             {/* MFS Stokes I parameters - always visible but conditionally disabled */}
-            <div className="form-group" style={{ 
+            <div className="form-group" style={{
               gridColumn: '1 / 6',
-              opacity: makeMfsStokesI ? 1 : 0.6 
+              opacity: makeMfsStokesI ? 1 : 0.6
             }}>
               <label>Robust parameter:</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="no-spinner"
                 value={robustParameter}
                 onChange={(e) => setRobustParameter(e.target.value)}
@@ -248,14 +284,14 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 disabled={!makeMfsStokesI}
               />
             </div>
-            
-            <div className="form-group" style={{ 
+
+            <div className="form-group" style={{
               gridColumn: '1 / 6',
               opacity: makeMfsStokesI ? 1 : 0.6
             }}>
               <label>Gaussian taper (arcsec):</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="no-spinner"
                 value={gaussianTaper}
                 onChange={(e) => setGaussianTaper(e.target.value)}
@@ -264,15 +300,15 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 disabled={!makeMfsStokesI}
               />
             </div>
-            
-            <div className="form-group" style={{ 
+
+            <div className="form-group" style={{
               gridColumn: '1 / 6',
               opacity: makeMfsStokesI ? 1 : 0.6
             }}>
               <label>Export additional images:</label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 2 }}>
-                  <Select 
+                  <Select
                     isMulti
                     value={additionalImages}
                     onChange={setAdditionalImages}
@@ -288,21 +324,21 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
 
             <div className="form-group" style={{ gridColumn: '1 / 6', display: 'flex', alignItems: 'center' }}>
               <label style={{ marginRight: '10px' }}>Make channel images:</label>
-              <input 
+              <input
                 type="checkbox"
                 checked={makeChannelImages}
                 onChange={(e) => setMakeChannelImages(e.target.checked)}
               />
             </div>
-            
+
             {/* Channel Images parameters - always visible but conditionally disabled */}
-            <div className="form-group" style={{ 
+            <div className="form-group" style={{
               gridColumn: '1 / 6',
-              opacity: makeChannelImages ? 1 : 0.6 
+              opacity: makeChannelImages ? 1 : 0.6
             }}>
               <label>Number of channels to image:</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="no-spinner"
                 value={channelCount}
                 onChange={(e) => setChannelCount(parseInt(e.target.value, 10) || 1)}
@@ -311,15 +347,15 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 disabled={!makeChannelImages}
               />
             </div>
-            
-            <div className="form-group" style={{ 
+
+            <div className="form-group" style={{
               gridColumn: '1 / 6',
-              opacity: makeChannelImages ? 1 : 0.6 
+              opacity: makeChannelImages ? 1 : 0.6
             }}>
               <label>Polarization to image:</label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 2 }}>
-                  <Select 
+                  <Select
                     isMulti
                     value={channelPolarizations}
                     onChange={setChannelPolarizations}
@@ -332,14 +368,14 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 <div style={{ flex: 1 }}></div>
               </div>
             </div>
-            
-            <div className="form-group" style={{ 
+
+            <div className="form-group" style={{
               gridColumn: '1 / 6',
-              opacity: makeChannelImages ? 1 : 0.6 
+              opacity: makeChannelImages ? 1 : 0.6
             }}>
               <label>Robust parameter:</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="no-spinner"
                 value={channelRobustParameter}
                 onChange={(e) => setChannelRobustParameter(e.target.value)}
@@ -347,14 +383,14 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 disabled={!makeChannelImages}
               />
             </div>
-            
-            <div className="form-group" style={{ 
+
+            <div className="form-group" style={{
               gridColumn: '1 / 6',
-              opacity: makeChannelImages ? 1 : 0.6 
+              opacity: makeChannelImages ? 1 : 0.6
             }}>
               <label>Gaussian taper (arcsec):</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 className="no-spinner"
                 value={channelGaussianTaper}
                 onChange={(e) => setChannelGaussianTaper(e.target.value)}
@@ -363,15 +399,15 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 disabled={!makeChannelImages}
               />
             </div>
-            
-            <div className="form-group" style={{ 
+
+            <div className="form-group" style={{
               gridColumn: '1 / 6',
-              opacity: makeChannelImages ? 1 : 0.6 
+              opacity: makeChannelImages ? 1 : 0.6
             }}>
               <label>Export additional images:</label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 2 }}>
-                  <Select 
+                  <Select
                     isMulti
                     value={channelAdditionalImages}
                     onChange={setChannelAdditionalImages}
@@ -391,89 +427,9 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
     }
   };
 
-  // Format ODP display with settings
+  // Format ODP display with settings - simplified to only show the label
   const formatOdpDisplay = (odp) => {
-    let settingsText = '';
-    
-    if (odp.type === 'calibrated_visibilities' && odp.settings) {
-      if (odp.settings.timeAveraging) {
-        settingsText += ` (Time avg factor: ${odp.settings.timeAveraging}`;
-        if (odp.settings.frequencyAveraging) {
-          settingsText += `, Freq avg factor: ${odp.settings.frequencyAveraging})`;
-        } else {
-          settingsText += ')';
-        }
-      } else if (odp.settings.frequencyAveraging) {
-        settingsText += ` (Freq avg factor: ${odp.settings.frequencyAveraging})`;
-      }
-    } else if (odp.type === 'images' && odp.settings) {
-      const imageTypes = [];
-      if (odp.settings.makeMfsStokesI) {
-        imageTypes.push('MFS Stokes I');
-        
-        // Add MFS Stokes I specific settings if present
-        if (odp.settings.mfsStokesI) {
-          const mfsSettings = [];
-          
-          if (odp.settings.mfsStokesI.robustParameter !== undefined) {
-            mfsSettings.push(`robust=${odp.settings.mfsStokesI.robustParameter}`);
-          }
-          
-          if (odp.settings.mfsStokesI.gaussianTaper !== undefined) {
-            mfsSettings.push(`taper=${odp.settings.mfsStokesI.gaussianTaper}`);
-          }
-          
-          if (odp.settings.mfsStokesI.additionalImages && odp.settings.mfsStokesI.additionalImages.length > 0) {
-            mfsSettings.push(`+${odp.settings.mfsStokesI.additionalImages.join(',')}`);
-          }
-          
-          if (mfsSettings.length > 0) {
-            imageTypes[0] += ` (${mfsSettings.join(', ')})`;
-          }
-        }
-      }
-      
-      if (odp.settings.makeChannelImages) {
-        let channelText = 'Channel images';
-        
-        // Add Channel Images specific settings if present
-        if (odp.settings.channelImages) {
-          const channelSettings = [];
-          
-          if (odp.settings.channelImages.channelCount !== undefined) {
-            channelText = `${odp.settings.channelImages.channelCount} Channel images`;
-          }
-          
-          if (odp.settings.channelImages.polarizations && odp.settings.channelImages.polarizations.length > 0) {
-            channelSettings.push(`${odp.settings.channelImages.polarizations.join(',')}`);
-          }
-          
-          if (odp.settings.channelImages.robustParameter !== undefined) {
-            channelSettings.push(`robust=${odp.settings.channelImages.robustParameter}`);
-          }
-          
-          if (odp.settings.channelImages.gaussianTaper !== undefined) {
-            channelSettings.push(`taper=${odp.settings.channelImages.gaussianTaper}`);
-          }
-          
-          if (odp.settings.channelImages.additionalImages && odp.settings.channelImages.additionalImages.length > 0) {
-            channelSettings.push(`+${odp.settings.channelImages.additionalImages.join(',')}`);
-          }
-          
-          if (channelSettings.length > 0) {
-            channelText += ` (${channelSettings.join(', ')})`;
-          }
-        }
-        
-        imageTypes.push(channelText);
-      }
-      
-      if (imageTypes.length > 0) {
-        settingsText = ` (${imageTypes.join(', ')})`;
-      }
-    }
-    
-    return `${odp.label}${settingsText}`;
+    return odp.label; // Return only the label without settings text
   };
 
   return (
@@ -493,41 +449,41 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
         <>
           <div className="form-group">
             <label>No. of zoom channels{telescope === 'SKA-Low' ? ` for station beam ${stationBeamId}` : ''}:</label>
-            <input 
-              type="number" 
-              value={subarray.zoomSettings[stationBeamId]?.numberOfZoomChannels || ''} 
+            <input
+              type="number"
+              value={subarray.zoomSettings[stationBeamId]?.numberOfZoomChannels || ''}
               onChange={(e) => handleZoomSettingsChange(subarray.id, 'numberOfZoomChannels', e.target.value)}
             />
           </div>
           <div className="form-group">
             <label>Zoom mode{telescope === 'SKA-Low' ? ` for station beam ${stationBeamId}` : ''}:</label>
-            <Select 
-              value={zoomOptions.find(option => option.value === subarray.zoomSettings[stationBeamId]?.zoomMode)} 
+            <Select
+              value={zoomOptions.find(option => option.value === subarray.zoomSettings[stationBeamId]?.zoomMode)}
               onChange={(option) => handleZoomSettingsChange(subarray.id, 'zoomMode', option.value)}
               options={zoomOptions}
             />
           </div>
           <div className="form-group">
             <label>Specified bandwidth{telescope === 'SKA-Low' ? ` for station beam ${stationBeamId}` : ''}:</label>
-            <input 
-              type="text" 
-              value={specifiedBandwidth} 
-              readOnly 
+            <input
+              type="text"
+              value={specifiedBandwidth}
+              readOnly
               style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
             />
           </div>
-          
+
           {/* ODP Settings Section - Added from ContinuumMode */}
           <h4 className="left-aligned">
             Observatory Data Products (ODP) settings{telescope === 'SKA-Low' ? ` for station beam ${stationBeamId}` : ''}
           </h4>
-          
+
           <div className="tab-content">
             <div className="form-group">
               <label>ODP Type:</label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ flex: 2 }}>
-                  <Select 
+                  <Select
                     value={selectedOdpType}
                     onChange={setSelectedOdpType}
                     options={odpTypeOptions}
@@ -536,7 +492,7 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <AwesomeButton 
+                  <AwesomeButton
                     type="primary"
                     onPress={handleAddOdp}
                     disabled={!selectedOdpType || (selectedOdpType?.value === 'images' && !makeMfsStokesI && !makeChannelImages)}
@@ -547,13 +503,26 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 </div>
               </div>
             </div>
-            
+
+            {/* Add ODP Label input field */}
+            {selectedOdpType && (
+              <div className="form-group">
+                <label>ODP label:</label>
+                <input
+                  type="text"
+                  value={odpLabel}
+                  onChange={(e) => setOdpLabel(e.target.value)}
+                  placeholder="Enter a custom label for this ODP"
+                />
+              </div>
+            )}
+
             <div className="odp-settings">
               {/* Conditional ODP type-specific settings */}
               {renderOdpTypeSettings()}
             </div>
           </div>
-          
+
           {/* ODP List Display */}
           <div className="odp-list-container" style={{ marginTop: '10px' }}>
             <h5 className="left-aligned">Specified ODPs</h5>
@@ -562,15 +531,15 @@ const ZoomMode = ({ subarray, handleObservingModeChange, handleZoomSettingsChang
                 No ODP specified. Use the form above to add ODPs.
               </p>
             ) : (
-              <ul style={{ 
-                listStyle: 'none', 
+              <ul style={{
+                listStyle: 'none',
                 padding: '0',
                 margin: '0'
               }}>
                 {odpList.map((odp) => (
-                  <li key={odp.id} style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                  <li key={odp.id} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: '8px',
                     margin: '4px 0',

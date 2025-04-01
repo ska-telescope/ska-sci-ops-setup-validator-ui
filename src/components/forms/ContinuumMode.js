@@ -12,6 +12,7 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
   const [selectedOdpType, setSelectedOdpType] = useState(null);
   // Initialize ODPs from subarray state instead of empty array
   const [odpList, setOdpList] = useState([]);
+  const [odpLabel, setOdpLabel] = useState(''); // New state for ODP label
   
   // Add states for additional ODP settings - using imported default values as integers
   const [timeAveraging, setTimeAveraging] = useState(defaultTimeAvgFactor);
@@ -66,8 +67,40 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
     setChannelRobustParameter(0.0);
     setChannelGaussianTaper(0.0);
     setChannelAdditionalImages([]);
+    
+    // Generate default label when ODP type changes
+    if (selectedOdpType) {
+      generateDefaultLabel(selectedOdpType.value);
+    } else {
+      setOdpLabel('');
+    }
   }, [selectedOdpType]);
-  
+
+  // Generate a default label for the ODP based on type and existing ODPs
+  const generateDefaultLabel = (odpType) => {
+    if (!odpType) return;
+    
+    const typeLabel = odpType === 'calibrated_visibilities' ? 'Calibrated visibilities' : 'Image';
+    
+    // Find the highest number used in existing labels of this type
+    let maxNumber = 0;
+    odpList.forEach(odp => {
+      if (odp.type === odpType && odp.label) {
+        // Extract the number from the label if it follows the pattern "Type X"
+        const match = odp.label.match(new RegExp(`${typeLabel} (\\d+)`));
+        if (match && match[1]) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNumber) {
+            maxNumber = num;
+          }
+        }
+      }
+    });
+    
+    // Set the default label with the next available number
+    setOdpLabel(`${typeLabel} ${maxNumber + 1}`);
+  };
+
   // Load ODPs from subarray state when component mounts or subarray changes
   useEffect(() => {
     const storedOdps = subarray.continuumSettings[stationBeamId]?.odpList || [];
@@ -78,7 +111,7 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
       return {
         id: odp.id || Date.now() + Math.random(), // Use existing id or generate new one
         type: odp.type,
-        label: matchingOption ? matchingOption.label : odp.type, // Get label from options or fallback to type
+        label: odp.label || (matchingOption ? matchingOption.label : odp.type), // Use existing label if available
         settings: odp.settings || {} // Include any saved settings
       };
     });
@@ -127,7 +160,7 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
       const newOdpForUI = {
         id: Date.now(), // Use timestamp as unique ID for UI operations
         type: selectedOdpType.value,
-        label: selectedOdpType.label,
+        label: odpLabel || selectedOdpType.label, // Use custom label or fall back to type label
         settings: settings
       };
       
@@ -137,6 +170,7 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
       // Create simplified version of the entire list for the API
       const updatedOdpListForAPI = updatedOdpListForUI.map(odp => ({ 
         type: odp.type,
+        label: odp.label, // Include label in API data
         settings: odp.settings
       }));
       
@@ -145,6 +179,7 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
       
       // Reset the dropdown and additional fields after adding
       setSelectedOdpType(null);
+      setOdpLabel(''); // Reset label field
       setTimeAveraging(defaultTimeAvgFactor);
       setFrequencyAveraging(defaultFreqAvgFactor);
       setMakeMfsStokesI(false);
@@ -168,6 +203,7 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
     // Create simplified version for the API
     const updatedOdpListForAPI = updatedOdpListForUI.map(odp => ({ 
       type: odp.type,
+      label: odp.label, // Include label in API data
       settings: odp.settings
     }));
     
@@ -378,89 +414,9 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
     }
   };
 
-  // Format ODP display with settings
+  // Format ODP display with settings - simplified to only show the label
   const formatOdpDisplay = (odp) => {
-    let settingsText = '';
-    
-    if (odp.type === 'calibrated_visibilities' && odp.settings) {
-      if (odp.settings.timeAveraging) {
-        settingsText += ` (Time avg factor: ${odp.settings.timeAveraging}`;
-        if (odp.settings.frequencyAveraging) {
-          settingsText += `, Freq avg factor: ${odp.settings.frequencyAveraging})`;
-        } else {
-          settingsText += ')';
-        }
-      } else if (odp.settings.frequencyAveraging) {
-        settingsText += ` (Freq avg factor: ${odp.settings.frequencyAveraging})`;
-      }
-    } else if (odp.type === 'images' && odp.settings) {
-      const imageTypes = [];
-      if (odp.settings.makeMfsStokesI) {
-        imageTypes.push('MFS Stokes I');
-        
-        // Add MFS Stokes I specific settings if present
-        if (odp.settings.mfsStokesI) {
-          const mfsSettings = [];
-          
-          if (odp.settings.mfsStokesI.robustParameter !== undefined) {
-            mfsSettings.push(`robust=${odp.settings.mfsStokesI.robustParameter}`);
-          }
-          
-          if (odp.settings.mfsStokesI.gaussianTaper !== undefined) {
-            mfsSettings.push(`taper=${odp.settings.mfsStokesI.gaussianTaper}`);
-          }
-          
-          if (odp.settings.mfsStokesI.additionalImages && odp.settings.mfsStokesI.additionalImages.length > 0) {
-            mfsSettings.push(`+${odp.settings.mfsStokesI.additionalImages.join(',')}`);
-          }
-          
-          if (mfsSettings.length > 0) {
-            imageTypes[0] += ` (${mfsSettings.join(', ')})`;
-          }
-        }
-      }
-      
-      if (odp.settings.makeChannelImages) {
-        let channelText = 'Channel images';
-        
-        // Add Channel Images specific settings if present
-        if (odp.settings.channelImages) {
-          const channelSettings = [];
-          
-          if (odp.settings.channelImages.channelCount !== undefined) {
-            channelText = `${odp.settings.channelImages.channelCount} Channel images`;
-          }
-          
-          if (odp.settings.channelImages.polarizations && odp.settings.channelImages.polarizations.length > 0) {
-            channelSettings.push(`${odp.settings.channelImages.polarizations.join(',')}`);
-          }
-          
-          if (odp.settings.channelImages.robustParameter !== undefined) {
-            channelSettings.push(`robust=${odp.settings.channelImages.robustParameter}`);
-          }
-          
-          if (odp.settings.channelImages.gaussianTaper !== undefined) {
-            channelSettings.push(`taper=${odp.settings.channelImages.gaussianTaper}`);
-          }
-          
-          if (odp.settings.channelImages.additionalImages && odp.settings.channelImages.additionalImages.length > 0) {
-            channelSettings.push(`+${odp.settings.channelImages.additionalImages.join(',')}`);
-          }
-          
-          if (channelSettings.length > 0) {
-            channelText += ` (${channelSettings.join(', ')})`;
-          }
-        }
-        
-        imageTypes.push(channelText);
-      }
-      
-      if (imageTypes.length > 0) {
-        settingsText = ` (${imageTypes.join(', ')})`;
-      }
-    }
-    
-    return `${odp.label}${settingsText}`;
+    return odp.label; // Return only the label without settings text
   };
 
   return (
@@ -538,6 +494,19 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
                 </div>
               </div>
             </div>
+            
+            {/* Add ODP Label input field */}
+            {selectedOdpType && (
+              <div className="form-group">
+                <label>ODP label:</label>
+                <input 
+                  type="text" 
+                  value={odpLabel}
+                  onChange={(e) => setOdpLabel(e.target.value)}
+                  placeholder="Enter a custom label for this ODP"
+                />
+              </div>
+            )}
             
             <div className="odp-settings">
               {/* Conditional ODP type-specific settings */}
