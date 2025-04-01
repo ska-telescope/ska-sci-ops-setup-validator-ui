@@ -16,6 +16,12 @@ export const skaMidDefaults = {
   // Default time and frequency average factors for Continuum mode
   export const defaultTimeAvgFactor = 1;
   export const defaultFreqAvgFactor = 1;
+
+  // Default Briggs weighting parameter
+  export const defaultBriggsWeighting = 0.0;
+
+  // Default Gaussian taper parameter (in arcsec)
+  export const defaultGaussianTaper = 0.0;
   
   // Context-specific PSS beam values
   export const getPssBeamsByContext = (context) => {
@@ -147,3 +153,33 @@ export const skaMidDefaults = {
   ];
   
   export const skaLowZoomOptions = skaLowZoomNames.map(name => ({ value: name, label: name }));
+
+  /* 
+   * Options for imaging data products other than the restored image.
+   */
+  export const additionalImageNames = [
+    'Residual',
+    'Model',
+    'PSF'
+  ];
+  export const additionalImageOptions = additionalImageNames.map(name => ({ value: name.toLowerCase(), label: name }));
+
+  /* 
+   * Polarization types.
+   */
+  export const polarizationNames = [
+    'I',
+    'Q',
+    'U',
+    'V'
+  ];
+  export const polarizationOptions = polarizationNames.map(name => ({ value: name, label: name }));
+
+  /*
+   * ODP types for imaging observations
+   */
+  export const odpTypeNames = [
+    'Calibrated visibilities',
+    'Images'
+  ];
+  export const odpTypeOptions = odpTypeNames.map(name => ({ value: name.toLowerCase().replace(/\s+/g, '_'), label: name }));

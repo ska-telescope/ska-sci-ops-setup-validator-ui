@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { defaultTimeAvgFactor, defaultFreqAvgFactor } from '../../utils/defaultValues';
+import { defaultTimeAvgFactor, defaultFreqAvgFactor, additionalImageOptions, polarizationOptions, odpTypeOptions, defaultBriggsWeighting, defaultGaussianTaper } from '../../utils/defaultValues';
 import { AwesomeButton } from 'react-awesome-button';
 import 'react-awesome-button/dist/styles.css';
 
@@ -12,46 +12,25 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
   const [selectedOdpType, setSelectedOdpType] = useState(null);
   // Initialize ODPs from subarray state instead of empty array
   const [odpList, setOdpList] = useState([]);
-  const [odpLabel, setOdpLabel] = useState(''); // New state for ODP label
+  const [odpLabel, setOdpLabel] = useState('');
   
-  // Add states for additional ODP settings - using imported default values as integers
+  // Add states for additional ODP settings
   const [timeAveraging, setTimeAveraging] = useState(defaultTimeAvgFactor);
   const [frequencyAveraging, setFrequencyAveraging] = useState(defaultFreqAvgFactor);
   const [makeMfsStokesI, setMakeMfsStokesI] = useState(false);
   const [makeChannelImages, setMakeChannelImages] = useState(false);
   
   // Add states for MFS Stokes I additional settings
-  const [robustParameter, setRobustParameter] = useState(0.0);
-  const [gaussianTaper, setGaussianTaper] = useState(0.0);
+  const [robustParameter, setRobustParameter] = useState(defaultBriggsWeighting);
+  const [gaussianTaper, setGaussianTaper] = useState(defaultGaussianTaper);
   const [additionalImages, setAdditionalImages] = useState([]);
 
   // Add states for Channel Images additional settings
   const [channelCount, setChannelCount] = useState(1);
   const [channelPolarizations, setChannelPolarizations] = useState([]);
-  const [channelRobustParameter, setChannelRobustParameter] = useState(0.0);
-  const [channelGaussianTaper, setChannelGaussianTaper] = useState(0.0);
+  const [channelRobustParameter, setChannelRobustParameter] = useState(defaultBriggsWeighting);
+  const [channelGaussianTaper, setChannelGaussianTaper] = useState(defaultGaussianTaper);
   const [channelAdditionalImages, setChannelAdditionalImages] = useState([]);
-
-  // Options for additional images multi-select
-  const additionalImageOptions = [
-    { value: 'residual', label: 'Residual' },
-    { value: 'model', label: 'Model' },
-    { value: 'psf', label: 'PSF' }
-  ];
-
-  // Options for polarization multi-select
-  const polarizationOptions = [
-    { value: 'I', label: 'I' },
-    { value: 'Q', label: 'Q' },
-    { value: 'U', label: 'U' },
-    { value: 'V', label: 'V' }
-  ];
-
-  // ODP type options for the dropdown
-  const odpTypeOptions = [
-    { value: 'calibrated_visibilities', label: 'Calibrated visibilities' },
-    { value: 'images', label: 'Images' }
-  ];
   
   // Reset additional fields when ODP type changes
   useEffect(() => {
@@ -59,13 +38,13 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
     setFrequencyAveraging(defaultFreqAvgFactor);
     setMakeMfsStokesI(false);
     setMakeChannelImages(false);
-    setRobustParameter(0.0);
-    setGaussianTaper(0.0);
+    setRobustParameter(defaultBriggsWeighting);
+    setGaussianTaper(defaultGaussianTaper);
     setAdditionalImages([]);
     setChannelCount(1);
     setChannelPolarizations([]);
-    setChannelRobustParameter(0.0);
-    setChannelGaussianTaper(0.0);
+    setChannelRobustParameter(defaultBriggsWeighting);
+    setChannelGaussianTaper(defaultGaussianTaper);
     setChannelAdditionalImages([]);
     
     // Generate default label when ODP type changes
@@ -184,13 +163,13 @@ const ContinuumMode = ({ subarray, handleObservingModeChange, handleContinuumSet
       setFrequencyAveraging(defaultFreqAvgFactor);
       setMakeMfsStokesI(false);
       setMakeChannelImages(false);
-      setRobustParameter(0.0);
-      setGaussianTaper(0.0);
+      setRobustParameter(defaultBriggsWeighting);
+      setGaussianTaper(defaultGaussianTaper);
       setAdditionalImages([]);
       setChannelCount(1);
       setChannelPolarizations([]);
-      setChannelRobustParameter(0.0);
-      setChannelGaussianTaper(0.0);
+      setChannelRobustParameter(defaultBriggsWeighting);
+      setChannelGaussianTaper(defaultGaussianTaper);
       setChannelAdditionalImages([]);
     }
   };
